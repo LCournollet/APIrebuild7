@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Player;
 use App\Repository\PlayerRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,5 +19,12 @@ class PlayerController extends AbstractController
 
         $jsonPlayerList = $serializer->serialize($playerList, 'json');
         return new JsonResponse($jsonPlayerList, Response::HTTP_OK, [], true);
+    }
+
+    #[Route('/api/players/{id}', name: 'detailPlayer', methods: ['GET'])]
+    public function getDetailPlayer(Player $player, SerializerInterface $serializer)
+    {
+        $jsonPlayer = $serializer->serialize($player, 'json');
+        return new JsonResponse($jsonPlayer, Response::HTTP_OK, [], true);
     }
 }
