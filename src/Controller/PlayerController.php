@@ -14,6 +14,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class PlayerController extends AbstractController
 {
@@ -42,25 +43,25 @@ class PlayerController extends AbstractController
     }
 
     #[Route('/api/players', name:"createPlayer", methods: ['POST'])]
-    public function createPlayer(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, TeamRepository $teamRepository): JsonResponse 
+    public function createPlayer(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, TeamRepository $teamRepository, ValidatorInterface $validator): JsonResponse 
     {
         $player = $serializer->deserialize($request->getContent(), Player::class, 'json');
 
-           // Récupération de l'ensemble des données envoyées sous forme de tableau
-           $content = $request->toArray();
-
-           // Récupération de l'idTeam. S'il n'est pas défini, alors on met -1 par défaut.
-           $idTeam = $content['idTeam'] ?? -1;
-   
-           $player->setTeam($teamRepository->find($idTeam));
+        $errors = $validator->validate($player);
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
 
         $em->persist($player);
         $em->flush();
 
-        $jsonPlayer = $serializer->serialize($player, 'json', ['groups' => 'getPlayers']);
-        
-        $location = $urlGenerator->generate('detailPlayer', ['id' => $player->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+        $content = $request->toArray();
+        $idTeam = $content['idTeam'] ?? -1;
+   
+        $player->setTeam($teamRepository->find($idTeam));
 
+        $jsonPlayer = $serializer->serialize($player, 'json', ['groups' => 'getPlayers']);
+        $location = $urlGenerator->generate('detailPlayer', ['id' => $player->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
         return new JsonResponse($jsonPlayer, Response::HTTP_CREATED, ["Location" => $location], true);
    }
 
