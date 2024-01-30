@@ -17,14 +17,14 @@ class PlayerController extends AbstractController
     {
         $playerList = $playerRepository->findAll();
 
-        $jsonPlayerList = $serializer->serialize($playerList, 'json');
+        $jsonPlayerList = $serializer->serialize($playerList, 'json', ['groups' => 'getPlayers']);
         return new JsonResponse($jsonPlayerList, Response::HTTP_OK, [], true);
     }
 
     #[Route('/api/players/{id}', name: 'detailPlayer', methods: ['GET'])]
     public function getDetailPlayer(Player $player, SerializerInterface $serializer)
     {
-        $jsonPlayer = $serializer->serialize($player, 'json');
+        $jsonPlayer = $serializer->serialize($player, 'json', ['groups' => 'getPlayers']);
         return new JsonResponse($jsonPlayer, Response::HTTP_OK, [], true);
     }
 }
