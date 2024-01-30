@@ -16,15 +16,23 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class PlayerController extends AbstractController
 {
     #[Route('/api/players', name: 'player', methods: ['GET'])]
-    public function getPlayerList(PlayerRepository $playerRepository, SerializerInterface $serializer): JsonResponse
+    public function getPlayerList(PlayerRepository $playerRepository, SerializerInterface $serializer, TagAwareCacheInterface $cache): JsonResponse
     {
-        $playerList = $playerRepository->findAll();
+        $idCache = "getPlayerList";
 
-        $jsonPlayerList = $serializer->serialize($playerList, 'json', ['groups' => 'getPlayers']);
+        $jsonPlayerList = $cache->get($idCache, function (ItemInterface $item) use ($playerRepository, $serializer) {
+            echo ("Mise en cache");
+            $item->tag("playersCache");
+            $playerList = $playerRepository->findAll();
+            return $serializer->serialize($playerList, 'json', ['groups' => 'getPlayers']);
+        });
+        
         return new JsonResponse($jsonPlayerList, Response::HTTP_OK, [], true);
     }
 
@@ -36,8 +44,9 @@ class PlayerController extends AbstractController
     }
 
     #[Route('/api/players/{id}', name: 'deletePlayer', methods: ['DELETE'])]
-    public function deletePlayer(Player $player, EntityManagerInterface $em): JsonResponse 
+    public function deletePlayer(Player $player, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse 
     {
+        $cache->invalidateTags(["playersCache"]);
         $em->remove($player);
         $em->flush();
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
@@ -45,11 +54,12 @@ class PlayerController extends AbstractController
 
     #[Route('/api/players', name:"createPlayer", methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN', message:"Vous devez disposer des droits pour pouvoir créer un joueur")]
-    public function createPlayer(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, TeamRepository $teamRepository, ValidatorInterface $validator): JsonResponse 
+    public function createPlayer(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, TeamRepository $teamRepository, ValidatorInterface $validator, TagAwareCacheInterface $cache): JsonResponse 
     {
         $player = $serializer->deserialize($request->getContent(), Player::class, 'json');
 
         $errors = $validator->validate($player);
+        $cache->invalidateTags(["playersCache"]);
         if ($errors->count() > 0) {
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
         }
@@ -69,7 +79,7 @@ class PlayerController extends AbstractController
 
    #[Route('/api/players/{id}', name:"updatePlayer", methods:['PUT'])]
 
-   public function updatePlayer(Request $request, SerializerInterface $serializer, Player $currentPlayer, EntityManagerInterface $em, TeamRepository $teamRepository): JsonResponse 
+   public function updatePlayer(Request $request, SerializerInterface $serializer, Player $currentPlayer, EntityManagerInterface $em, TeamRepository $teamRepository, TagAwareCacheInterface $cache): JsonResponse 
    {
        $updatedPlayer = $serializer->deserialize($request->getContent(), 
                Player::class, 
@@ -79,6 +89,7 @@ class PlayerController extends AbstractController
        $idTeam = $content['idTeam'] ?? -1;
        $updatedPlayer->setTeam($teamRepository->find($idTeam));
        
+       $cache->invalidateTags(["playersCache"]);
        $em->persist($updatedPlayer);
        $em->flush();
        return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
