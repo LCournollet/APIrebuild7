@@ -22,8 +22,9 @@ cd NOM-DU-PROJET
   ```
 ## Configuration
 
-Assurez-vous d'avoir le fichier .local.env correctement configuré pour votre utilisation :
-![image](https://github.com/LCournollet/APIrebuild7/assets/98102389/3036fde5-8d31-4c24-a83c-c6a499ce3038)
+Assurez-vous d'avoir le fichier .env.local correctement configuré pour votre utilisation :
+![image](https://github.com/LCournollet/APIrebuild7/assets/92153278/b978a4ac-c736-4e0d-ab34-4d3125ed5fc1)
+
 
 ## Exécution
 
