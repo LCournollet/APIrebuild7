@@ -34,4 +34,4 @@ Pour lancer le serveur symfony, utilisez :
 Votre l'api devrait maintenant être accessible depuis votre localhost
 
 ## Exécution
-Ce projet dispose d'une [Licence](https://www.youtube.com/watch?v=dQw4w9WgXcQ)https://www.youtube.com/watch?v=dQw4w9WgXcQ
+Ce projet dispose d'une [Licence](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
