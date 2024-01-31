@@ -15,7 +15,7 @@ Nous recommandons l'utilisation de [visual studio code](https://code.visualstudi
   ```bash
 cd NOM-DU-PROJET
   ```
-
+  (assusez vous de remplacer par le bon nom que vous avez choisis pour cloner le projet)
 3. Installez les différentes dépendences grace à Composer :
   ```bash
   composer install
@@ -29,7 +29,7 @@ Assurez vous d'avoir le fichier .local.env correctement configuré pour votre ut
 
 Pour lancer le serveur symfony, utilisez :
   ```bash
-  symfony server:start
+  symfony serve
   ```
 Votre l'api devrait maintenant être accessible depuis votre localhost
 
